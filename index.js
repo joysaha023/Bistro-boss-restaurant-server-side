@@ -36,7 +36,7 @@ async function run() {
     // jwt related api
     app.post('/jwt', async(req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h' });
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "30d" });
       res.send({token})
     })
 
@@ -105,7 +105,7 @@ async function run() {
       res.send(result)
     })
 
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -117,7 +117,7 @@ async function run() {
       res.send(result);
     })
 
-    app.delete('/users/:id', async (req, res) => {
+    app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id)}
       const result = await userCollection.deleteOne(query)
@@ -129,12 +129,17 @@ async function run() {
     app.get('/menu', async(req, res) => {
         const result = await menuCollection.find().toArray();
         res.send(result);
-
-
     })
+
     app.get('/review', async(req, res) => {
         const result = await reviewCollection.find().toArray();
         res.send(result);
+    })
+
+    app.post('/menu', verifyToken, verifyAdmin, async (req, res) => {
+      const item = req.body;
+      const result = await menuCollection.insertOne(item);
+      res.send(result);
     })
 
     //carts collection
